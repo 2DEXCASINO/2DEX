@@ -1,22 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2DEX – MEGA CASINO</title>
+    <title>2DEX – PROFESSIONAL CASINO</title>
     <style>
         :root {
             --bg-dark: #07090b;
             --card-bg: #12141a;
             --accent-green: #00ff66;
             --nav-bg: #16191e;
-            --text-gray: #888;
         }
 
         body {
             background-color: var(--bg-dark); color: white;
-            font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 100px;
-            overflow-x: hidden; -webkit-tap-highlight-color: transparent;
+            font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 80px;
+            overflow: hidden; /* Запрещаем скролл когда открыта игра */
         }
 
         /* 1. ЭКРАН ЗАГРУЗКИ */
@@ -28,146 +27,118 @@
         .splash-logo { font-size: 60px; font-weight: 900; color: var(--accent-green); animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-        /* 2. МЕДЛЕННАЯ ЛИНИЯ ВЫИГРЫШЕЙ */
-        .jackpot-line { background: #1e2329; padding: 12px 0; border-bottom: 1px solid var(--accent-green); overflow: hidden; }
-        .ticker { 
-            display: inline-block; 
-            white-space: nowrap; 
-            animation: ticker 70s linear infinite; /* Замедлено до 70 секунд */
-            font-weight: bold; 
-            font-size: 14px; 
+        /* 2. ОКНО ИГРЫ (IFRAME) */
+        #game-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 9999; display: none;
         }
+        #game-frame { width: 100%; height: 100%; border: none; }
+        .back-btn {
+            position: absolute; top: 10px; left: 10px; z-index: 10001;
+            background: rgba(0,0,0,0.7); color: white; border: 1px solid var(--accent-green);
+            padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer;
+        }
+
+        /* 3. ДИЗАЙН ЛОББИ */
+        .main-wrapper { height: 100vh; overflow-y: auto; }
+        .jackpot-line { background: #1e2329; padding: 12px 0; border-bottom: 1px solid var(--accent-green); overflow: hidden; }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 80s linear infinite; font-weight: bold; font-size: 14px; }
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* 3. ШАПКА */
-        header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #101216; position: sticky; top: 0; z-index: 100; }
+        header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #101216; }
         .logo { font-weight: 900; font-size: 26px; color: var(--accent-green); }
         .balance { background: #1c2128; padding: 6px 15px; border-radius: 10px; border: 1px solid #333; font-weight: bold; }
 
-        /* 4. СЕТКА ИГР (АДАПТИВНАЯ) */
         .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; padding: 15px; }
-        .game-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; border: 1px solid #222; transition: 0.2s; }
-        .game-card:active { transform: scale(0.96); }
-        .game-card img { width: 100%; height: 100px; object-fit: cover; }
-        .game-info { padding: 8px; text-align: center; font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .provider-tag { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.8); font-size: 7px; padding: 2px 4px; border-radius: 3px; color: var(--accent-green); z-index: 5; }
+        .game-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; position: relative; border: 1px solid #222; }
+        .game-card img { width: 100%; height: 100px; object-fit: cover; background: #222; }
+        .game-info { padding: 8px; text-align: center; font-size: 11px; font-weight: bold; }
 
-        /* 5. ЖИВОЙ ЧАТ */
-        #live-chat {
-            position: fixed; bottom: 80px; left: 10px; right: 10px;
-            height: 45px; background: rgba(22, 25, 30, 0.95); border-radius: 12px;
-            display: flex; align-items: center; padding: 0 15px;
-            font-size: 12px; border: 1px solid #00ff6644; backdrop-filter: blur(10px);
-            z-index: 900; transition: 0.5s; opacity: 0; transform: translateY(20px);
-        }
-        .chat-user { color: var(--accent-green); font-weight: bold; margin-right: 5px; }
-
-        /* 6. ПРОФИЛЬ */
-        #profile-page {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark); z-index: 999; display: none;
-            padding: 40px 20px; text-align: center;
-        }
-        .avatar { width: 80px; height: 80px; background: var(--accent-green); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 35px; color: black; }
-
-        /* 7. НАВИГАЦИЯ */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg);
-            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2d333b; z-index: 1000;
+            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2d333b;
         }
-        .nav-item { color: var(--text-gray); text-decoration: none; font-size: 10px; text-align: center; flex: 1; }
-        .nav-item.active { color: var(--accent-green); }
+        .nav-item { color: #888; text-decoration: none; font-size: 10px; text-align: center; }
+        .active { color: var(--accent-green); }
     </style>
 </head>
 <body>
 
 <div id="splash-screen"><div class="splash-logo">2DEX</div></div>
 
-<div id="profile-page">
-    <div class="avatar">👤</div>
-    <h2>PLAYER_2DEX</h2>
-    <div style="background:#1c2128; margin: 30px 0; padding: 25px; border-radius: 20px; border: 1px solid #333;">
-        <small>БАЛАНС</small>
-        <div style="font-size: 28px; font-weight: bold;">5,750.00 <span style="color:var(--accent-green)">BYN</span></div>
+<!-- Контейнер для запуска игр -->
+<div id="game-container">
+    <button class="back-btn" onclick="closeGame()">◀ НАЗАД</button>
+    <iframe id="game-frame" src=""></iframe>
+</div>
+
+<div class="main-wrapper">
+    <div class="jackpot-line">
+        <div class="ticker" id="tickerContent"></div>
     </div>
-    <button onclick="toggleProfile(false)" style="background: var(--accent-green); border: none; padding: 15px; border-radius: 15px; font-weight: bold; width: 100%;">ЗАКРЫТЬ</button>
+
+    <header>
+        <div class="logo">2DEX</div>
+        <div class="balance">5,750.00 <span style="color:var(--accent-green)">BYN</span></div>
+    </header>
+
+    <div class="game-grid" id="gameGrid"></div>
 </div>
-
-<div class="jackpot-line">
-    <div class="ticker" id="tickerContent"></div>
-</div>
-
-<header>
-    <div class="logo">2DEX</div>
-    <div class="balance">5,750.00 <span style="color:var(--accent-green)">BYN</span></div>
-</header>
-
-<div class="game-grid" id="gameGrid"></div>
-
-<div id="live-chat"></div>
 
 <nav class="bottom-nav">
-    <div class="nav-item active" onclick="toggleProfile(false)">🏠<br>Главная</div>
-    <div class="nav-item" onclick="alert('Загрузка слотов...')">🎰<br>Слоты</div>
-    <div class="nav-item" onclick="alert('История пуста')">📊<br>История</div>
-    <div class="nav-item" onclick="toggleProfile(true)">👤<br>Профиль</div>
+    <div class="nav-item active">🏠<br>Главная</div>
+    <div class="nav-item">🎰<br>Слоты</div>
+    <div class="nav-item">📊<br>История</div>
+    <div class="nav-item">👤<br>Профиль</div>
 </nav>
 
 <script>
+    // 1. Сплеш-скрин
     setTimeout(() => {
         document.getElementById('splash-screen').style.opacity = '0';
         setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 500);
     }, 2000);
 
-    // ОГРОМНЫЙ СПИСОК ИГР (20 штук)
+    // 2. Список игр с официальными картинками
     const games = [
-        { name: "Aviator", prov: "SPRIBE", img: "https://vladkaslo.com", url: "https://spribe.co" },
-        { name: "Gates of Olympus", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Sweet Bonanza", prov: "PRAGMATIC", img: "https://sloterman-by.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "The Dog House", prov: "PRAGMATIC", img: "https://top-kazino-onlajn.ru", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Sugar Rush", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Big Bass Splash", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Mental", prov: "NOLIMIT", img: "https://vladkaslo.com", url: "https://www.nolimitcity.com" },
-        { name: "Razor Shark", prov: "PUSH GAMING", img: "https://vladkaslo.com", url: "https://www.pushgaming.com" },
-        { name: "San Quentin", prov: "NOLIMIT", img: "https://vladkaslo.com", url: "https://www.nolimitcity.com" },
-        { name: "Crazy Time", prov: "EVOLUTION", img: "https://vladkaslo.com", url: "https://www.evolution.com" },
-        { name: "Starlight Princess", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Wanted Dead or Wild", prov: "HACKSAW", img: "https://vladkaslo.com", url: "https://www.hacksawgaming.com" },
-        { name: "Book of Dead", prov: "PLAY'N GO", img: "https://vladkaslo.com", url: "https://www.playngo.com" },
-        { name: "Legacy of Dead", prov: "PLAY'N GO", img: "https://vladkaslo.com", url: "https://www.playngo.com" },
-        { name: "Zeus vs Hades", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Fruit Party", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Buffalo King", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Wild West Gold", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Gems Bonanza", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" },
-        { name: "Madame Destiny", prov: "PRAGMATIC", img: "https://vladkaslo.com", url: "https://demogamesfree.pragmaticplay.net" }
+        { name: "Aviator", img: "https://vladkaslo.com", url: "https://spribe.co" },
+        { name: "Gates of Olympus", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Sweet Bonanza", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "The Dog House", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Sugar Rush", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Big Bass Splash", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Starlight Princess", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Wolf Gold", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" }
     ];
 
-    const users = ["dimas_92", "x_winner_x", "minsk_tiger", "lucky_girl_22", "vlad_casino", "user_4491", "pro_gambler", "sergey_by", "mega_luck", "belarus_king", "diana_01", "max_bet"];
-    
     const grid = document.getElementById('gameGrid');
     games.forEach(g => {
-        grid.innerHTML += `<div class="game-card" onclick="location.href='${g.url}'"><span class="provider-tag">${g.prov}</span><img src="${g.img}"><div class="game-info">${g.name}</div></div>`;
+        grid.innerHTML += `
+            <div class="game-card" onclick="openGame('${g.url}')">
+                <img src="${g.img}" onerror="this.src='https://via.placeholder.com'">
+                <div class="game-info">${g.name}</div>
+            </div>`;
     });
 
+    // 3. Управление игрой
+    function openGame(url) {
+        document.getElementById('game-frame').src = url;
+        document.getElementById('game-container').style.display = 'block';
+    }
+
+    function closeGame() {
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('game-frame').src = "";
+    }
+
+    // 4. Медленная строка
     const ticker = document.getElementById('tickerContent');
-    for(let i=0; i<30; i++) {
+    const users = ["dimas_92", "x_winner_x", "minsk_tiger", "lucky_girl_22", "vlad_casino"];
+    for(let i=0; i<20; i++) {
         const u = users[Math.floor(Math.random()*users.length)];
-        const amt = (Math.random() * 8000 + 150).toFixed(0);
+        const amt = (Math.random() * 5000 + 100).toFixed(0);
         ticker.innerHTML += `<span style="margin-right:60px">🔥 ${u.toUpperCase()} ВЫИГРАЛ <span style="color:var(--accent-green)">${amt} BYN</span></span>`;
     }
-
-    function toggleProfile(show) { document.getElementById('profile-page').style.display = show ? 'block' : 'none'; }
-
-    function updateChat() {
-        const chat = document.getElementById('live-chat');
-        const user = users[Math.floor(Math.random()*users.length)];
-        const phrases = ["насыпало в Mental x500! 🧠", "Авиатор сегодня пушка! 🚀", "кто в курсе про вывод?", "Sweet Bonanza дает бонусы!", "всем удачи в 2DEX! 🍀"];
-        chat.innerHTML = `<span class="chat-user">${user}:</span> ${phrases[Math.floor(Math.random()*phrases.length)]}`;
-        chat.style.opacity = '1'; chat.style.transform = 'translateY(0)';
-        setTimeout(() => { chat.style.opacity = '0'; chat.style.transform = 'translateY(20px)'; }, 4000);
-    }
-    setInterval(updateChat, 10000);
 </script>
 </body>
 </html>
