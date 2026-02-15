@@ -1,116 +1,181 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2DEX – Элитные Игры</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2DEX – PROFESSIONAL CASINO</title>
     <style>
-        /* Основные цвета в стиле Maxline */
         :root {
-            --bg-dark: #0f1215;
-            --card-bg: #1e2229;
+            --bg-dark: #07090b;
+            --card-bg: #12141a;
             --accent-green: #00ff66;
-            --text-gray: #9ca3af;
+            --nav-bg: #16191e;
+            --text-gray: #888;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: white;
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
+            background-color: var(--bg-dark); color: white;
+            font-family: 'Segoe UI', sans-serif; margin: 0; padding-bottom: 100px;
+            overflow-x: hidden; -webkit-tap-highlight-color: transparent;
         }
 
-        header {
-            background: #16191e;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #2d333b;
+        /* 1. ЭКРАН ЗАГРУЗКИ */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 10000;
         }
+        .splash-logo { font-size: 60px; font-weight: 900; color: var(--accent-green); animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
-        .logo { font-weight: bold; font-size: 24px; color: var(--accent-green); }
+        /* 2. ЛИНИЯ ВЫИГРЫШЕЙ */
+        .jackpot-line { background: #1e2329; padding: 10px 0; border-bottom: 1px solid var(--accent-green); overflow: hidden; }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 40s linear infinite; font-weight: bold; font-size: 13px; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        .balance-box {
-            background: #252a32;
-            padding: 5px 15px;
-            border-radius: 8px;
-            border: 1px solid var(--accent-green);
+        /* 3. ШАПКА */
+        header { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #101216; position: sticky; top: 0; z-index: 100; }
+        .logo { font-weight: 900; font-size: 26px; color: var(--accent-green); }
+        .balance { background: #1c2128; padding: 6px 15px; border-radius: 10px; border: 1px solid #333; font-weight: bold; font-size: 14px;}
+
+        /* 4. СЕТКА ИГР */
+        .game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 15px; }
+        .game-card { background: var(--card-bg); border-radius: 15px; overflow: hidden; position: relative; border: 1px solid #222; transition: 0.2s; }
+        .game-card:active { transform: scale(0.96); }
+        .game-card img { width: 100%; height: 110px; object-fit: cover; }
+        .game-info { padding: 10px; text-align: center; font-size: 12px; font-weight: bold; }
+        .provider-tag { position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.7); font-size: 8px; padding: 2px 5px; border-radius: 3px; color: var(--accent-green); }
+
+        /* 5. ЖИВОЙ ЧАТ (УЛУЧШЕННЫЙ) */
+        #live-chat {
+            position: fixed; bottom: 80px; left: 10px; right: 10px;
+            height: 45px; background: rgba(22, 25, 30, 0.9); border-radius: 12px;
+            display: flex; align-items: center; padding: 0 15px;
+            font-size: 12px; border: 1px solid #00ff6644; backdrop-filter: blur(10px);
+            z-index: 900; transition: 0.5s; opacity: 0; transform: translateY(20px);
         }
+        .chat-user { color: var(--accent-green); font-weight: bold; margin-right: 5px; }
 
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 15px;
-            padding: 20px;
+        /* 6. ПРОФИЛЬ */
+        #profile-page {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); z-index: 999; display: none;
+            padding: 40px 20px; text-align: center;
         }
+        .avatar { width: 90px; height: 90px; background: var(--accent-green); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 40px; color: black; box-shadow: 0 0 20px rgba(0,255,102,0.3); }
 
-        .game-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            overflow: hidden;
-            transition: transform 0.2s;
-            cursor: pointer;
-            position: relative;
+        /* 7. НАВИГАЦИЯ */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg);
+            display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2d333b; z-index: 1000;
         }
-
-        .game-card:hover { transform: scale(1.05); }
-
-        .game-card img { width: 100%; display: block; }
-
-        .game-title {
-            padding: 10px;
-            font-size: 14px;
-            text-align: center;
-            background: rgba(0,0,0,0.6);
-        }
-
-        .play-btn {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--accent-green);
-            color: black;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: none;
-        }
-
-        .game-card:hover .play-btn { display: block; }
+        .nav-item { color: var(--text-gray); text-decoration: none; font-size: 11px; text-align: center; cursor: pointer; flex: 1; }
+        .nav-item.active { color: var(--accent-green); }
+        .nav-icon { font-size: 20px; display: block; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">2DEX</div>
-    <div class="balance-box">
-        <span id="balance">1,000.00</span> <span style="color:var(--accent-green)">BYN</span>
-    </div>
-</header>
+<div id="splash-screen"><div class="splash-logo">2DEX</div></div>
 
-<div class="game-grid">
-    <!-- Карточка игры 1 -->
-    <div class="game-card" onclick="openGame('https://demogamesfree.pragmaticplay.net')">
-        <img src="https://vladkaslo.com" alt="Gates of Olympus">
-        <div class="play-btn">ИГРАТЬ</div>
-        <div class="game-title">Gates of Olympus</div>
+<div id="profile-page">
+    <div class="avatar">👤</div>
+    <h2 style="margin-bottom: 5px;">PLAYER_8818628</h2>
+    <span style="background: var(--accent-green); color: black; padding: 2px 10px; border-radius: 10px; font-size: 10px; font-weight: bold;">VIP LEVEL 4</span>
+    <div style="background:#1c2128; margin: 30px 0; padding: 25px; border-radius: 20px; border: 1px solid #333;">
+        <small style="color: var(--text-gray); text-transform: uppercase; letter-spacing: 1px;">Доступный баланс</small>
+        <div style="font-size: 28px; font-weight: bold; margin-top: 5px;">5,750.00 <span style="color:var(--accent-green)">BYN</span></div>
     </div>
-
-    <!-- Карточка игры 2 -->
-    <div class="game-card" onclick="openGame('https://demogamesfree.pragmaticplay.net')">
-        <img src="https://sloterman-by.com" alt="Sweet Bonanza">
-        <div class="play-btn">ИГРАТЬ</div>
-        <div class="game-title">Sweet Bonanza</div>
-    </div>
+    <button onclick="toggleProfile(false)" style="background: var(--accent-green); border: none; color:black; padding: 15px 50px; border-radius: 30px; font-weight: bold; width: 100%;">ВЕРНУТЬСЯ К ИГРАМ</button>
 </div>
 
+<div class="jackpot-line">
+    <div class="ticker" id="tickerContent"></div>
+</div>
+
+<header>
+    <div class="logo">2DEX</div>
+    <div class="balance">5,750.00 <span style="color:var(--accent-green)">BYN</span></div>
+</header>
+
+<div class="game-grid" id="gameGrid"></div>
+
+<div id="live-chat"></div>
+
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="toggleProfile(false)"><span class="nav-icon">🏠</span>Главная</div>
+    <div class="nav-item" onclick="alert('Слоты загружаются...')"><span class="nav-icon">🎰</span>Слоты</div>
+    <div class="nav-item" onclick="alert('История пуста')"><span class="nav-icon">📊</span>История</div>
+    <div class="nav-item" onclick="toggleProfile(true)"><span class="nav-icon">👤</span>Профиль</div>
+</nav>
+
 <script>
-    function openGame(url) {
-        // Просто открываем игру в новом окне или фрейме
-        window.location.href = url;
+    // 1. Скрытие сплеш-скрина
+    setTimeout(() => {
+        document.getElementById('splash-screen').style.opacity = '0';
+        setTimeout(() => document.getElementById('splash-screen').style.display = 'none', 500);
+    }, 2000);
+
+    // 2. База данных для имитации
+    const games = [
+        { name: "Aviator", prov: "SPRIBE", img: "https://static.casino.guru", url: "https://spribe.co" },
+        { name: "Gates of Olympus", prov: "PRAGMATIC", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Sweet Bonanza", prov: "PRAGMATIC", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "The Dog House", prov: "PRAGMATIC", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Sugar Rush", prov: "PRAGMATIC", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" },
+        { name: "Big Bass Splash", prov: "PRAGMATIC", img: "https://img.cdn.pragmaticplay.net", url: "https://demogamesfree.pragmaticplay.net" }
+    ];
+
+    const users = ["dimas_92", "x_winner_x", "minsk_tiger", "lucky_girl_22", "vlad_casino", "user_4491", "pro_gambler", "sergey_by", "mega_luck"];
+    
+    // 3. Заполнение сетки
+    const grid = document.getElementById('gameGrid');
+    games.forEach(g => {
+        grid.innerHTML += `
+            <div class="game-card" onclick="location.href='${g.url}'">
+                <span class="provider-tag">${g.prov}</span>
+                <img src="${g.img}">
+                <div class="game-info">${g.name}</div>
+            </div>`;
+    });
+
+    // 4. Заполнение бегущей строки
+    const ticker = document.getElementById('tickerContent');
+    for(let i=0; i<15; i++) {
+        const u = users[Math.floor(Math.random()*users.length)];
+        const amt = (Math.random() * 5000 + 100).toFixed(0);
+        ticker.innerHTML += `<span style="margin-right:50px">🔥 ${u.toUpperCase()} ВЫИГРАЛ <span style="color:var(--accent-green)">${amt} BYN</span></span>`;
     }
+
+    // 5. Профиль
+    function toggleProfile(show) {
+        document.getElementById('profile-page').style.display = show ? 'block' : 'none';
+    }
+
+    // 6. Реалистичный чат
+    function updateChat() {
+        const chat = document.getElementById('live-chat');
+        const user = users[Math.floor(Math.random()*users.length)];
+        const phrases = [
+            `поднял ${ (Math.random()*2000).toFixed(0) } BYN в Авиаторе! 🚀`,
+            "насыпало в бонуске Gates! 💎",
+            "кто в курсе, когда вывод? 😉",
+            "Sweet Bonanza сегодня дает x200!",
+            "всем удачных заносов! 🍀",
+            "чекайте баланс, бонус прилетел!"
+        ];
+        
+        chat.innerHTML = `<span class="chat-user">${user}:</span> ${phrases[Math.floor(Math.random()*phrases.length)]}`;
+        chat.style.opacity = '1';
+        chat.style.transform = 'translateY(0)';
+        
+        setTimeout(() => {
+            chat.style.opacity = '0';
+            chat.style.transform = 'translateY(20px)';
+        }, 4000);
+    }
+    setInterval(updateChat, 8000);
+    updateChat();
 </script>
 
 </body>
